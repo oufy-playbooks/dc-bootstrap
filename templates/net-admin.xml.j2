@@ -1,0 +1,10 @@
+<network>
+  <name>vlan{{ '%04d' | format(net_admin.id|int) }}</name>
+  <uuid>{{ net_admin.uuid }}</uuid>
+  <forward mode='bridge'/>
+  <bridge name='{{ net_admin.bridge_name }}'/>
+  <vlan>
+    <tag id='{{ net_admin.id }}'/>
+  </vlan>
+  <virtualport type='openvswitch'/>
+</network>

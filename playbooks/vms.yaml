@@ -1,0 +1,70 @@
+---
+- name: manage created VMs in ansible inventory
+  hosts: "localhost"
+  tasks:
+
+  - name: add pki VM in inventory
+    add_host:
+      name: "{{ pki_vm.name }}"
+      groups: pki
+      ansible_host: "{{ pki_vm.l3.interfaces.0.ip }}"
+      ansible_user: root
+      ansible_password: M1the1tel!
+  - name: add dst VM in inventory
+    add_host:
+      name: "{{ dst_vm.name }}"
+      groups: dst
+      ansible_host: "{{ dst_vm.l3.interfaces.0.ip }}"
+      ansible_user: root
+      ansible_password: M1the1tel!
+
+- name: manage created VMs
+  hosts: pki:dst
+
+  tasks:
+
+  - name: check packages for updates
+    shell: LANG=C yum list updates | awk 'f;/Updated Packages/{f=1;}' | awk '{ print $1 }'
+    changed_when: updates.stdout_lines | length > 0
+    args:
+      warn: false
+    register: updates
+  - name: display count
+    debug:
+      msg: "Found {{ updates.stdout_lines | length }} packages to be updated:\n\n{{ updates.stdout }}"
+  - when: updates.stdout_lines | length > 0
+    block:
+      - name: install updates using yum
+        yum:
+          name: "*"
+          state: latest
+      - name: install yum-utils
+        package:
+          name: yum-utils
+      - name: check if reboot is required
+        shell: needs-restarting -r
+        failed_when: false
+        register: reboot_required
+        changed_when: false
+  - when: updates.stdout_lines | length > 0 and reboot_required.rc != 0
+    block:
+      - name: reboot the server if required
+        shell: sleep 3; reboot
+        ignore_errors: true
+        changed_when: false
+        async: 1
+        poll: 0
+      - name: wait for server to come back after reboot
+        wait_for_connection:
+          timeout: 600
+          delay: 20
+        register: reboot_result
+      - name: reboot time
+        debug:
+          msg: "The system rebooted in {{ reboot_result.elapsed }} seconds."
+
+  - name: inject ssh key
+    authorized_key:
+      state: present
+      key: "{{ lookup('file', '../files/id_ed25519.pub') }}"
+      user: "{{ ansible_user }}"

@@ -1,0 +1,73 @@
+#version=RHEL7
+# autostep --autoscreenshot
+# System authorization information
+auth --enableshadow --passalgo=sha512
+
+install
+# URL
+url --url="{{ centos_install.url }}"
+
+# Run the Setup Agent on first boot
+firstboot --enable
+#ignoredisk --only-use=vda,vdb
+# Keyboard layouts
+keyboard --vckeymap=fr --xlayouts='fr (oss)'
+# System language
+lang fr_FR.UTF-8
+
+# FW
+firewall --enabled --ssh
+
+# logging
+logging --level=error
+
+# Network information
+network  --bootproto=static --device=eth0 --gateway={{ dst_vm.l3.interfaces.0.gw }} --ip={{ dst_vm.l3.interfaces.0.ip }} --nameserver={{ dst_vm.l3.dns.0 }},{{ dst_vm.l3.dns.1 }} --netmask={{ dst_vm.l3.interfaces.0.nm }} --ipv6=auto --activate
+network  --bootproto=static --device=eth1 --ip={{ dst_vm.l3.interfaces.1.ip }} --netmask={{ dst_vm.l3.interfaces.1.nm }} --ipv6=auto --activate
+network  --hostname={{ dst_vm.name }}.{{ dst_vm.domain_name }}
+# Root password
+rootpw --iscrypted $6$cpZhz31nCR5jRkCu$eIzJpMKV9GLWMqNFMWnn0jyueRUNuLxELrVCNTofuXqR8Ai8veLHIXu5tSTXQaaCzHDHixbTk.a8LVt7pEYFQ0
+# System timezone
+timezone Europe/Paris --isUtc
+# System bootloader configuration
+bootloader --location=mbr --boot-drive=vda
+# Partition clearing information
+clearpart --initlabel --all
+# Disk partitioning information
+part /boot --fstype="xfs" --asprimary --ondrive=vda --label=boot --size=1024
+part pv.1 --fstype="lvmpv" --asprimary --ondrive=vda --size=1024 --grow
+part pv.10 --fstype="lvmpv" --asprimary --ondrive=vdb --size=1024 --grow
+volgroup {{ dst_vm.vg.system }} --pesize=32768 pv.1
+volgroup {{ dst_vm.vg.app.0 }} --pesize=32768 pv.10
+logvol swap  --fstype="swap" --name=swap --vgname={{ dst_vm.vg.system }} --size=2048
+logvol /  --fstype="xfs" --size=30720 --label="root" --name=root --vgname={{ dst_vm.vg.system }}
+logvol /var  --fstype="xfs" --size=10240 --label="var" --name=var --vgname={{ dst_vm.vg.system }}
+logvol /tmp  --fstype="xfs" --size=4192 --label="tmp" --name=tmp --vgname={{ dst_vm.vg.system }}
+logvol /var/lib/pulp  --fstype="xfs" --size=204800 --label="pulp" --name=pulp --vgname={{ dst_vm.vg.app.0 }}
+logvol /data/puppet_repo  --fstype="xfs" --size=20480 --label="puppet" --name=puppet --vgname={{ dst_vm.vg.app.0 }}
+logvol /var/lib/mongodb  --fstype="xfs" --size=41920 --label="mongodb" --name=mongodb --vgname={{ dst_vm.vg.app.0 }}
+
+eula --agreed
+reboot
+
+services --enabled=sshd
+
+selinux --enforcing
+
+
+%packages
+@core
+aide
+esc
+libreswan
+pam_pkcs11
+%end
+
+
+%addon org_fedora_oscap
+    content-type = scap-security-guide
+    profile = xccdf_org.ssgproject.content_profile_pci-dss
+%end
+
+%addon com_redhat_kdump --disable
+%end

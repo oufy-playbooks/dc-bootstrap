@@ -1,0 +1,20 @@
+<pool type='fs'>
+  <name>{{ bootstrap_pool_name }}</name>
+  <uuid>{{ bootstrap_pool_uuid }}</uuid>
+  <capacity unit='bytes'>984372224000</capacity>
+  <allocation unit='bytes'>931328610304</allocation>
+  <available unit='bytes'>53043613696</available>
+  <source>
+    <device path='/dev/disk/by-uuid/{{ bootstrap_disk_uuid }}'/>
+    <format type='auto'/>
+  </source>
+  <target>
+    <path>{{ bootstrap_pool_mount_path }}</path>
+    <permissions>
+      <mode>0755</mode>
+      <owner>0</owner>
+      <group>0</group>
+      <label>system_u:object_r:virt_image_t:s0</label>
+    </permissions>
+  </target>
+</pool>

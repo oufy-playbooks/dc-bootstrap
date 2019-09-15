@@ -1,0 +1,10 @@
+<network>
+  <name>vlan{{ '%04d' | format(net_pxe.id|int) }}</name>
+  <uuid>{{ net_pxe.uuid }}</uuid>
+  <forward mode='bridge'/>
+  <bridge name='{{ net_pxe.bridge_name }}'/>
+  <vlan>
+    <tag id='{{ net_pxe.id }}'/>
+  </vlan>
+  <virtualport type='openvswitch'/>
+</network>

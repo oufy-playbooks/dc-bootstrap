@@ -1,0 +1,208 @@
+---
+- name: create bootstrap VMs
+  hosts: "libvirt"
+
+  tasks:
+  - name: Bootstrap virsh pool definition
+    virt_pool:
+      name: "{{ bootstrap_pool_name }}"
+      command: define
+      xml: "{{ lookup('template', '../templates/bootstrap_pool.xml.j2') }}"
+      uri: "qemu:///system"
+  - name: Bootstrap virsh pool autostart
+    virt_pool:
+      name: "{{ bootstrap_pool_name }}"
+      autostart: yes
+      uri: "qemu:///system"
+  - name: Bootstrap virsh pool start
+    virt_pool:
+      name: "{{ bootstrap_pool_name }}"
+      uri: "qemu:///system"
+      state: active
+  - name: Check Folders in the pool
+    file:
+      state: directory
+      path: "{{ bootstrap_pool_mount_path }}/{{ item }}"
+      owner: root
+      group: root
+      mode: 0755
+    with_items:
+      - confs
+      - images
+      - isos
+      - kickstarts
+
+#  - name: PXE net XML conf on bootstrap disk
+#    template:
+#      owner: root
+#      group: root
+#      mode: 0644
+#      dest: "{{ bootstrap_pool_mount_path }}/confs/net-vlan{{ '%04d' | format(net_pxe.id|int) }}.xml"
+#      src: "../templates/net-pxe.xml.j2"
+  - name: PXE virsh net definition
+    virt_net:
+      name: "vlan{{ '%04d' | format(net_pxe.id|int) }}"
+      command: define
+      xml: "{{ lookup('template', '../templates/net-pxe.xml.j2') }}"
+      uri: "qemu:///system"
+  - name: autostart PXE network
+    virt_net:
+      name: "vlan{{ '%04d' | format(net_pxe.id|int) }}"
+      uri: "qemu:///system"
+      autostart: yes
+  - name: start PXE network
+    virt_net:
+      name: "vlan{{ '%04d' | format(net_pxe.id|int) }}"
+      uri: "qemu:///system"
+      state: active
+
+#  - name: Admin net XML conf on bootstrap disk
+#    template:
+#      owner: root
+#      group: root
+#      mode: 0644
+#      dest: "{{ bootstrap_pool_mount_path }}/confs/net-vlan{{ '%04d' | format(net_admin.id|int) }}.xml"
+#      src: "../templates/net-admin.xml.j2"
+
+  - name: Admin virsh net definition
+    virt_net:
+      name: "vlan{{ '%04d' | format(net_admin.id|int) }}"
+      command: define
+      xml: "{{ lookup('template', '../templates/net-admin.xml.j2') }}"
+      uri: "qemu:///system"
+  - name: autostart Admin network
+    virt_net:
+      name: "vlan{{ '%04d' | format(net_admin.id|int) }}"
+      uri: "qemu:///system"
+      autostart: yes
+  - name: start Admin network
+    virt_net:
+      name: "vlan{{ '%04d' | format(net_admin.id|int) }}"
+      uri: "qemu:///system"
+      state: active
+
+  - name: Centos netinstall ISO
+    get_url:
+      dest: "{{ bootstrap_pool_mount_path }}/isos/centos_netinstall-{{ centos_version }}-{{ centos_build }}.iso"
+      group: qemu
+      owner: qemu
+      mode: 0644
+      url: "{{ centos_netinstall.url }}"
+      checksum: "{{ centos_netinstall.checksum }}"
+
+  - name: dst VM kickstart file
+    template:
+      owner: root
+      group: root
+      mode: 0644
+      dest: "{{ bootstrap_pool_mount_path }}/kickstarts/ks_{{dst_vm.name}}.cfg"
+      src: "../templates/dst_vm_ks.cfg.j2"
+    register: dst_vm_ks_file
+  - name: pki VM kickstart file
+    template:
+      owner: root
+      group: root
+      mode: 0644
+      dest: "{{ bootstrap_pool_mount_path }}/kickstarts/ks_{{pki_vm.name}}.cfg"
+      src: "../templates/pki_vm_ks.cfg.j2"
+    register: pki_vm_ks_file
+
+  - name: kickstart iso image presence check
+    stat:
+      path: "{{ bootstrap_pool_mount_path }}/isos/ks.iso"
+    register: ks_iso_file
+  - name: remove kickstart iso image
+    file:
+      path: "{{ bootstrap_pool_mount_path }}/isos/ks.iso"
+      state: absent
+    when: ks_iso_file.stat.exists and dst_vm_ks_file.changed
+  - name: kickstart iso image generation
+    shell: "mkisofs -o {{ bootstrap_pool_mount_path }}/isos/ks.iso -full-iso9660-filenames {{ bootstrap_pool_mount_path }}/kickstarts/"
+    args:
+      creates: "{{ bootstrap_pool_mount_path }}/isos/ks.iso"
+    when: dst_vm_ks_file.changed or pki_vm_ks_file.changed or not(ks_iso_file.stat.exists)
+  - name: kickstart iso image mode fix
+    file:
+      path: "{{ bootstrap_pool_mount_path }}/isos/ks.iso"
+      state: file
+      owner: qemu
+      group: qemu
+      mode: 0644
+
+  - name: dst VM OS disk presence check
+    stat:
+      path: "{{ bootstrap_pool_mount_path }}/images/{{ dst_vm.name }}-disk0.{{ dst_vm.os_disk.format }}"
+    register: dst_os_disk
+  - name: pki VM OS disk presence check
+    stat:
+      path: "{{ bootstrap_pool_mount_path }}/images/{{ pki_vm.name }}-disk0.{{ pki_vm.os_disk.format }}"
+    register: pki_os_disk
+  - name: create dst VM OS disk
+    shell: "qemu-img create -f {{ dst_vm.os_disk.format }} {{ bootstrap_pool_mount_path }}/images/{{ dst_vm.name }}-disk0.{{ dst_vm.os_disk.format }} {{ dst_vm.os_disk.size }}"
+    when: dst_os_disk.stat.exists == false
+  - name: create pki VM OS disk
+    shell: "qemu-img create -f {{ pki_vm.os_disk.format }} {{ bootstrap_pool_mount_path }}/images/{{ pki_vm.name }}-disk0.{{ pki_vm.os_disk.format }} {{ pki_vm.os_disk.size }}"
+    when: pki_os_disk.stat.exists == false
+
+  - name: dst VM repos disk presence check
+    stat:
+      path: "{{ bootstrap_pool_mount_path }}/images/{{ dst_vm.name }}-repos01.{{ dst_vm.repos_disk.format }}"
+    register: dst_repos_disk
+  - name: pki VM data disk presence check
+    stat:
+      path: "{{ bootstrap_pool_mount_path }}/images/{{ pki_vm.name }}-data.{{ pki_vm.data_disk.format }}"
+    register: pki_data_disk
+  - name: create dst VM repos disk
+    shell: "qemu-img create -f {{ dst_vm.repos_disk.format }} {{ bootstrap_pool_mount_path }}/images/{{ dst_vm.name }}-repos01.{{ dst_vm.repos_disk.format }} {{ dst_vm.repos_disk.size }}"
+    when: dst_repos_disk.stat.exists == false
+  - name: create pki VM data disk
+    shell: "qemu-img create -f {{ pki_vm.data_disk.format }} {{ bootstrap_pool_mount_path }}/images/{{ pki_vm.name }}-data.{{ pki_vm.data_disk.format }} {{ pki_vm.data_disk.size }}"
+    when: pki_data_disk.stat.exists == false
+
+  - name: dst VMs XML conf on bootstrap disk
+    template:
+      owner: root
+      group: root
+      mode: 0644
+      dest: "{{ bootstrap_pool_mount_path }}/confs/{{dst_vm.name}}.xml"
+      src: "../templates/dst_vm.xml.j2"
+    register: dst_vm_xml_file
+  - name: pki VMs XML conf on bootstrap disk
+    template:
+      owner: root
+      group: root
+      mode: 0644
+      dest: "{{ bootstrap_pool_mount_path }}/confs/{{pki_vm.name}}.xml"
+      src: "../templates/pki_vm.xml.j2"
+    register: pki_vm_xml_file
+  - name: undefine existing dst VM
+    virt:
+      name: "{{ dst_vm.name }}"
+      command: undefine
+      uri: "qemu:///system"
+    when: dst_vm_xml_file.changed
+  - name: define dst VM
+    virt:
+      name: "{{ dst_vm.name }}"
+      command: define
+      xml: "{{ lookup('template', '../templates/dst_vm.xml.j2') }}"
+      uri: "qemu:///system"
+  - name: define pki VM
+    virt:
+      name: "{{ pki_vm.name }}"
+      command: define
+      xml: "{{ lookup('template', '../templates/pki_vm.xml.j2') }}"
+      uri: "qemu:///system"
+  - name: set dst VM status
+    virt:
+      name: "{{ dst_vm.name }}"
+      autostart: no
+      state: shutdown
+      uri: "qemu:///system"
+  - name: set pki VM status
+    virt:
+      name: "{{ pki_vm.name }}"
+      autostart: no
+      state: shutdown
+      uri: "qemu:///system"
+
