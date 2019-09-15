@@ -1,0 +1,232 @@
+- name: Deploy openssl packages
+  yum:
+    name:
+      - 'openssl'
+      - 'pyOpenSSL'
+    state: latest
+
+
+- name: create skeleton folders
+  file:
+    state: directory
+    owner: root
+    group: root
+    mode: 0700
+    path: "{{ item }}"
+  with_items:
+    - "{{ cert_authorities.root.path }}"
+    - "{{ cert_authorities.root.path }}/certs"
+    - "{{ cert_authorities.root.path }}/private"
+    - "{{ cert_authorities.root.path }}/crl"
+    - "{{ cert_authorities.root.path }}/requests"
+    - "{{ cert_authorities.root.path }}/newcerts"
+    - "{{ cert_authorities.servers.path }}"
+    - "{{ cert_authorities.servers.path }}/certs"
+    - "{{ cert_authorities.servers.path }}/private"
+    - "{{ cert_authorities.servers.path }}/crl"
+    - "{{ cert_authorities.servers.path }}/requests"
+    - "{{ cert_authorities.servers.path }}/newcerts"
+    - "{{ cert_authorities.users.path }}"
+    - "{{ cert_authorities.users.path }}/certs"
+    - "{{ cert_authorities.users.path }}/private"
+    - "{{ cert_authorities.users.path }}/crl"
+    - "{{ cert_authorities.users.path }}/requests"
+    - "{{ cert_authorities.users.path }}/newcerts"
+
+- name: create root CA key
+  openssl_privatekey:
+    cipher: "{{ cert_authorities.root.ca_key_cipher }}"
+    passphrase: "{{ cert_authorities.root.ca_key_passphrase }}"
+    group: root
+    owner: root
+    mode: 0600
+    path: "{{ cert_authorities.root.path }}/private/{{ cert_authorities.root.name }}.pem"
+    size: 4096
+    state: present
+    type: RSA
+  register: root_ca_private_key
+
+- name: initialize root CA index
+  file:
+    state: touch
+    path: "{{ cert_authorities.root.path }}/index.txt"
+    owner: root
+    group: root
+    mode: 0600
+  when: root_ca_private_key.changed
+- name: initialize root CA serial counter
+  template:
+    dest: "{{ cert_authorities.root.path }}/serial"
+    owner: root
+    group: root
+    mode: 0600
+    src: "../templates/pki/serial"
+  when: root_ca_private_key.changed
+- name: initialize root CA crlnumber
+  template:
+    dest: "{{ cert_authorities.root.path }}/crlnumber"
+    owner: root
+    group: root
+    mode: 0600
+    src: "../templates/pki/crlnumber"
+  when: root_ca_private_key.changed
+- name: configure root CA openssl
+  template:
+    dest: "{{ cert_authorities.root.path }}/openssl.cnf"
+    owner: root
+    group: root
+    mode: 0600
+    src: "../templates/pki/rootca_openssl.cnf.j2"
+- name: check root CA cacert existence
+  stat:
+    path: "{{ cert_authorities.root.path }}/certs/{{ cert_authorities.root.name }}.crt"
+  register: root_ca_cert_file
+- name: generate root CA csr
+  shell: "openssl req -new -config {{ cert_authorities.root.path }}/openssl.cnf -out {{ cert_authorities.root.path }}/requests/{{ cert_authorities.root.name }}.csr.pem -key {{ cert_authorities.root.path }}/private/{{ cert_authorities.root.name }}.pem -passin pass:{{ cert_authorities.root.ca_key_passphrase }} -batch"
+  args:
+    creates: "{{ cert_authorities.root.path }}/requests/{{ cert_authorities.root.name }}.csr.pem"
+  when: root_ca_private_key.changed or not(root_ca_cert_file.stat.exists)
+  register: root_ca_csr_file
+- name: generate root CA cert
+  shell: "openssl ca -selfsign -config {{ cert_authorities.root.path }}/openssl.cnf -in {{ cert_authorities.root.path }}/requests/{{ cert_authorities.root.name }}.csr.pem -out {{ cert_authorities.root.path }}/certs/{{ cert_authorities.root.name }}.crt -extensions root_ca_ext -passin pass:{{ cert_authorities.root.ca_key_passphrase }} -batch"
+  args:
+    creates: "{{ cert_authorities.root.path }}/certs/{{ cert_authorities.root.name }}.crt"
+  when: root_ca_csr_file
+  register: root_ca_cert_file
+- name: generate root ca crl
+  shell: "openssl ca -gencrl -config {{ cert_authorities.root.path }}/openssl.cnf -out {{ cert_authorities.root.path }}/crl/{{ cert_authorities.root.name }}.crl.pem -passin pass:{{ cert_authorities.root.ca_key_passphrase }} -batch"
+  args:
+    creates: "{{ cert_authorities.root.path }}/crl/{{ cert_authorities.root.name }}.crl.pem"
+
+
+
+- name: create servers CA key
+  openssl_privatekey:
+    cipher: "{{ cert_authorities.servers.ca_key_cipher }}"
+    passphrase: "{{ cert_authorities.servers.ca_key_passphrase }}"
+    group: root
+    owner: root
+    mode: 0600
+    path: "{{ cert_authorities.servers.path }}/private/{{ cert_authorities.servers.name }}.pem"
+    size: 4096
+    state: present
+    type: RSA
+  register: servers_ca_private_key
+
+- name: initialize servers CA index
+  file:
+    state: touch
+    path: "{{ cert_authorities.servers.path }}/index.txt"
+    owner: root
+    group: root
+    mode: 0600
+  when: servers_ca_private_key.changed
+- name: initialize servers CA serial counter
+  template:
+    dest: "{{ cert_authorities.servers.path }}/serial"
+    owner: root
+    group: root
+    mode: 0600
+    src: "../templates/pki/serial"
+  when: servers_ca_private_key.changed
+- name: initialize servers CA crlnumber
+  template:
+    dest: "{{ cert_authorities.servers.path }}/crlnumber"
+    owner: root
+    group: root
+    mode: 0600
+    src: "../templates/pki/crlnumber"
+  when: servers_ca_private_key.changed
+- name: configure servers CA openssl
+  template:
+    dest: "{{ cert_authorities.servers.path }}/openssl.cnf"
+    owner: root
+    group: root
+    mode: 0600
+    src: "../templates/pki/serversca_openssl.cnf.j2"
+- name: check servers CA cacert existence
+  stat:
+    path: "{{ cert_authorities.servers.path }}/certs/{{ cert_authorities.servers.name }}.crt"
+  register: servers_ca_cert_file
+- name: generate servers CA cert request
+  shell: "openssl req -new -config {{ cert_authorities.servers.path }}/openssl.cnf -out {{ cert_authorities.servers.path }}/requests/{{ cert_authorities.servers.name }}.csr.pem -key {{ cert_authorities.servers.path }}/private/{{ cert_authorities.servers.name }}.pem -passin pass:{{ cert_authorities.servers.ca_key_passphrase }} -batch"
+  args:
+    creates: "{{ cert_authorities.servers.path }}/requests/{{ cert_authorities.servers.name }}.csr.pem"
+  when: servers_ca_private_key.changed or not(servers_ca_cert_file.stat.exists)
+  register: servers_ca_csr_file
+- name: generate servers CA cert
+  shell: "openssl ca -config {{ cert_authorities.root.path }}/openssl.cnf -in {{ cert_authorities.servers.path }}/requests/{{ cert_authorities.servers.name }}.csr.pem -out {{ cert_authorities.servers.path }}/certs/{{ cert_authorities.servers.name }}.crt -extensions signing_ca_ext -passin pass:{{ cert_authorities.root.ca_key_passphrase }} -batch"
+  args:
+    creates: "{{ cert_authorities.servers.path }}/certs/{{ cert_authorities.servers.name }}.crt"
+  when: servers_ca_csr_file
+  register: servers_ca_cert_file
+- name: generate servers ca crl
+  shell: "openssl ca -gencrl -config {{ cert_authorities.servers.path }}/openssl.cnf -out {{ cert_authorities.servers.path }}/crl/{{ cert_authorities.servers.name }}.crl.pem -passin pass:{{ cert_authorities.servers.ca_key_passphrase }} -batch"
+  args:
+    creates: "{{ cert_authorities.servers.path }}/crl/{{ cert_authorities.servers.name }}.crl.pem"
+
+- name: create users CA key
+  openssl_privatekey:
+    cipher: "{{ cert_authorities.users.ca_key_cipher }}"
+    passphrase: "{{ cert_authorities.users.ca_key_passphrase }}"
+    group: root
+    owner: root
+    mode: 0600
+    path: "{{ cert_authorities.users.path }}/private/{{ cert_authorities.users.name }}.pem"
+    size: 4096
+    state: present
+    type: RSA
+  register: users_ca_private_key
+
+- name: initialize users CA index
+  file:
+    state: touch
+    path: "{{ cert_authorities.users.path }}/index.txt"
+    owner: root
+    group: root
+    mode: 0600
+  when: users_ca_private_key.changed
+- name: initialize users CA serial counter
+  template:
+    dest: "{{ cert_authorities.users.path }}/serial"
+    owner: root
+    group: root
+    mode: 0600
+    src: "../templates/pki/serial"
+  when: users_ca_private_key.changed
+- name: initialize users CA crlnumber
+  template:
+    dest: "{{ cert_authorities.users.path }}/crlnumber"
+    owner: root
+    group: root
+    mode: 0600
+    src: "../templates/pki/crlnumber"
+  when: users_ca_private_key.changed
+- name: configure users CA openssl
+  template:
+    dest: "{{ cert_authorities.users.path }}/openssl.cnf"
+    owner: root
+    group: root
+    mode: 0600
+    src: "../templates/pki/usersca_openssl.cnf.j2"
+- name: check users CA cacert existence
+  stat:
+    path: "{{ cert_authorities.users.path }}/certs/{{ cert_authorities.users.name }}.crt"
+  register: users_ca_cert_file
+- name: generate users CA cert request
+  shell: "openssl req -new -config {{ cert_authorities.users.path }}/openssl.cnf -out {{ cert_authorities.users.path }}/requests/{{ cert_authorities.users.name }}.csr.pem -key {{ cert_authorities.users.path }}/private/{{ cert_authorities.users.name }}.pem -passin pass:{{ cert_authorities.users.ca_key_passphrase }} -batch"
+  args:
+    creates: "{{ cert_authorities.users.path }}/requests/{{ cert_authorities.users.name }}.csr.pem"
+  when: users_ca_private_key.changed or not(users_ca_cert_file.stat.exists)
+  register: users_ca_csr_file
+- name: generate users CA cert
+  shell: "openssl ca -config {{ cert_authorities.root.path }}/openssl.cnf -in {{ cert_authorities.users.path }}/requests/{{ cert_authorities.users.name }}.csr.pem -out {{ cert_authorities.users.path }}/certs/{{ cert_authorities.users.name }}.crt -extensions signing_ca_ext -passin pass:{{ cert_authorities.root.ca_key_passphrase }} -batch"
+  args:
+    creates: "{{ cert_authorities.users.path }}/certs/{{ cert_authorities.users.name }}.crt"
+  when: users_ca_csr_file
+  register: users_ca_cert_file
+- name: generate users ca crl
+  shell: "openssl ca -gencrl -config {{ cert_authorities.users.path }}/openssl.cnf -out {{ cert_authorities.users.path }}/crl/{{ cert_authorities.users.name }}.crl.pem -passin pass:{{ cert_authorities.users.ca_key_passphrase }} -batch"
+  args:
+    creates: "{{ cert_authorities.users.path }}/crl/{{ cert_authorities.users.name }}.crl.pem"
+

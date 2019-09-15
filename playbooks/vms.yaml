@@ -40,7 +40,9 @@
           state: latest
       - name: install yum-utils
         package:
-          name: yum-utils
+          name:
+            - yum-utils
+            - vim-enhanced
       - name: check if reboot is required
         shell: needs-restarting -r
         failed_when: false
@@ -68,3 +70,10 @@
       state: present
       key: "{{ lookup('file', '../files/id_ed25519.pub') }}"
       user: "{{ ansible_user }}"
+
+- name: small PKI deployment
+  hosts: pki
+ 
+  tasks:
+  - name: Deploy PKI
+    include: ../tasks/deploy-pki.yaml

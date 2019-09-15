@@ -1,0 +1,35 @@
+cert_authorities:
+  root:
+    name: root_ca
+    path: "/data/oufy_ca/{{ pki_domain }}_root_ca"
+    ca_key_passphrase: 'M1the1tel!'
+    ca_key_cipher: 'aes-256-cbc'
+    country: FR
+    province_name: '13'
+    city: Belcodene
+    organisation: OufY.net
+    email: certadmin@oufy.net
+    ou_name: "{{ site_name }}"
+
+  servers:
+    name: servers_ca
+    path: "/data/oufy_ca/{{ pki_domain }}_servers_ca"
+    ca_key_passphrase: 'Server%321!'
+    ca_key_cipher: 'aes-256-cbc'
+    country: FR
+    province_name: '13'
+    city: Belcodene
+    organisation: OufY.net
+    email: certadmin@oufy.net
+    ou_name: "{{ site_name }}"
+  users:
+    name: users_ca
+    path: "/data/oufy_ca/{{ pki_domain }}_users_ca"
+    ca_key_passphrase: 'M1the1tel!'
+    ca_key_cipher: 'aes-256-cbc'
+    country: FR
+    province_name: '13'
+    city: Belcodene
+    organisation: OufY.net
+    email: certadmin@oufy.net
+    ou_name: "{{ site_name }}"
