@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo Hello, please enter the fqdn string of your certificate or hit Ctrl-c to cancel
+read fqdn
+
+openssl ca -config {{ cert_authorities.servers.path }}/openssl.cnf -in /data/oufy_ca/oufy_servers_ca/requests/${fqdn}.csr.pem -out {{ cert_authorities.servers.path }}/certs/${fqdn}.crt -extensions server_ext -passin pass:{{ cert_authorities.servers.ca_key_passphrase }}
+
+# openssl ca \
+#    -config etc/tls-ca.conf \
+#    -in certs/green.no.csr \
+#    -out certs/green.no.crt \
+#    -extensions server_ext

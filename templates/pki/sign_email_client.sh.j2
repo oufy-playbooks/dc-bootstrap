@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo Please enter the request related email you want to sign
+read client_email
+
+openssl ca -config {{ cert_authorities.users.path }}/openssl.cnf -in {{ cert_authorities.users.path }}/requests/${client_email}.csr.pem -out {{ cert_authorities.users.path }}/certs/${client_email}.crt -extensions email_ext -passin pass:{{ cert_authorities.users.ca_key_passphrase }}
+
+#openssl ca \
+#    -config etc/email-ca.conf \
+#    -in certs/fred.csr \
+#    -out certs/fred.crt \
+#    -extensions email_ext

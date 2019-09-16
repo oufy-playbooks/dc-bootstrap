@@ -16,18 +16,21 @@
   with_items:
     - "{{ cert_authorities.root.path }}"
     - "{{ cert_authorities.root.path }}/certs"
+    - "{{ cert_authorities.root.path }}/bin"
     - "{{ cert_authorities.root.path }}/private"
     - "{{ cert_authorities.root.path }}/crl"
     - "{{ cert_authorities.root.path }}/requests"
     - "{{ cert_authorities.root.path }}/newcerts"
     - "{{ cert_authorities.servers.path }}"
     - "{{ cert_authorities.servers.path }}/certs"
+    - "{{ cert_authorities.servers.path }}/bin"
     - "{{ cert_authorities.servers.path }}/private"
     - "{{ cert_authorities.servers.path }}/crl"
     - "{{ cert_authorities.servers.path }}/requests"
     - "{{ cert_authorities.servers.path }}/newcerts"
     - "{{ cert_authorities.users.path }}"
     - "{{ cert_authorities.users.path }}/certs"
+    - "{{ cert_authorities.users.path }}/bin"
     - "{{ cert_authorities.users.path }}/private"
     - "{{ cert_authorities.users.path }}/crl"
     - "{{ cert_authorities.users.path }}/requests"
@@ -160,6 +163,9 @@
     creates: "{{ cert_authorities.servers.path }}/certs/{{ cert_authorities.servers.name }}.crt"
   when: servers_ca_csr_file
   register: servers_ca_cert_file
+- name: create servers ca cert chain
+  shell: "cat {{ cert_authorities.servers.path }}/certs/{{ cert_authorities.servers.name }}.crt {{ cert_authorities.root.path }}/certs/{{ cert_authorities.root.name }}.crt > {{ cert_authorities.servers.path }}/{{ cert_authorities.servers.name }}-chain.crt"
+  when: servers_ca_cert_file or root_ca_cert_file
 - name: generate servers ca crl
   shell: "openssl ca -gencrl -config {{ cert_authorities.servers.path }}/openssl.cnf -out {{ cert_authorities.servers.path }}/crl/{{ cert_authorities.servers.name }}.crl.pem -passin pass:{{ cert_authorities.servers.ca_key_passphrase }} -batch"
   args:
@@ -225,8 +231,78 @@
     creates: "{{ cert_authorities.users.path }}/certs/{{ cert_authorities.users.name }}.crt"
   when: users_ca_csr_file
   register: users_ca_cert_file
+- name: create users ca cert chain
+  shell: "cat {{ cert_authorities.users.path }}/certs/{{ cert_authorities.users.name }}.crt {{ cert_authorities.root.path }}/certs/{{ cert_authorities.root.name }}.crt > {{ cert_authorities.users.path }}/{{ cert_authorities.users.name }}-chain.crt"
+  when: users_ca_cert_file or root_ca_cert_file
 - name: generate users ca crl
   shell: "openssl ca -gencrl -config {{ cert_authorities.users.path }}/openssl.cnf -out {{ cert_authorities.users.path }}/crl/{{ cert_authorities.users.name }}.crl.pem -passin pass:{{ cert_authorities.users.ca_key_passphrase }} -batch"
   args:
     creates: "{{ cert_authorities.users.path }}/crl/{{ cert_authorities.users.name }}.crl.pem"
 
+
+- name: deploy tls client request openssl config file
+  template:
+    dest: "{{ cert_authorities.servers.path }}/csr_tls_clients.cnf"
+    owner: root
+    group: root
+    mode: 0600
+    src: "../templates/pki/tls_client.cnf.j2"
+- name: deploy tls server request openssl config file
+  template:
+    dest: "{{ cert_authorities.servers.path }}/csr_tls_servers.cnf"
+    owner: root
+    group: root
+    mode: 0600
+    src: "../templates/pki/tls_server.cnf.j2"
+- name: deploy email client request openssl config file
+  template:
+    dest: "{{ cert_authorities.users.path }}/csr_email.cnf"
+    owner: root
+    group: root
+    mode: 0600
+    src: "../templates/pki/email.cnf.j2"
+
+- name: deploy csr script for tls server
+  template:
+    dest: "{{ cert_authorities.servers.path }}/bin/csr_tls_server.sh"
+    owner: root
+    group: root
+    mode: 0700
+    src: "../templates/pki/csr_tls_server.sh.j2"
+- name: deploy csr script for tls client
+  template:
+    dest: "{{ cert_authorities.servers.path }}/bin/csr_tls_client.sh"
+    owner: root
+    group: root
+    mode: 0700
+    src: "../templates/pki/csr_tls_client.sh.j2"
+- name: deploy csr script for email clients
+  template:
+    dest: "{{ cert_authorities.users.path }}/bin/csr_email_client.sh"
+    owner: root
+    group: root
+    mode: 0700
+    src: "../templates/pki/csr_email_client.sh.j2"
+
+
+- name: deploy sign script for tls servers
+  template:
+    dest: "{{ cert_authorities.servers.path }}/bin/sign_tls_server.sh"
+    owner: root
+    group: root
+    mode: 0700
+    src: "../templates/pki/sign_tls_server.sh.j2"
+- name: deploy sign script for tls clients
+  template:
+    dest: "{{ cert_authorities.servers.path }}/bin/sign_tls_client.sh"
+    owner: root
+    group: root
+    mode: 0700
+    src: "../templates/pki/sign_tls_client.sh.j2"
+- name: deploy sign script for email clients
+  template:
+    dest: "{{ cert_authorities.users.path }}/bin/sign_email_client.sh"
+    owner: root
+    group: root
+    mode: 0700
+    src: "../templates/pki/sign_email_client.sh.j2"

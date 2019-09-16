@@ -1,0 +1,13 @@
+#!/bin/bash
+
+echo Please enter the request related email you want to sign
+read client_email
+
+openssl ca -config {{ cert_authorities.servers.path }}/openssl.cnf -in {{ cert_authorities.servers.path }}/requests/${client_email}.csr.pem -out {{ cert_authorities.users.path }}/certs/${client_email}.crt -policy extern_pol -extensions client_ext -passin pass:{{ cert_authorities.servers.ca_key_passphrase }}
+
+#openssl ca \
+#    -config etc/tls-ca.conf \
+#    -in certs/barney.csr \
+#    -out certs/barney.crt \
+#    -policy extern_pol \
+#    -extensions client_ext

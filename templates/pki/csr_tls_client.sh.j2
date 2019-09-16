@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo Hello, please enter the client email string of your certificate or hit Ctrl-c to cancel
+read user_email
+
+openssl req -new -config {{ cert_authorities.servers.path }}/csr_tls_clients.cnf -out {{ cert_authorities.servers.path }}/requests/${user_email}.csr.pem -keyout {{ cert_authorities.servers.path }}/private/${user_email}.key.pem
+
+
+# openssl req -new \
+#    -config etc/client.conf \
+#    -out certs/barney.csr \
+#    -keyout certs/barney.key

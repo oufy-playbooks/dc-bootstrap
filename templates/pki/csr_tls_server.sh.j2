@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo Hello, please enter the fqdn string of your certificate or hit Ctrl-c to cancel
+read fqdn
+
+SAN=DNS:${fqdn} openssl req -new -config {{ cert_authorities.servers.path }}/csr_tls_servers.cnf -out {{ cert_authorities.servers.path }}/requests/${fqdn}.csr.pem -keyout {{ cert_authorities.servers.path }}/private/${fqdn}.key.pem
+
+#SAN=DNS:green.no,DNS:www.green.no \
+#openssl req -new \
+#    -config etc/server.conf \
+#    -out certs/green.no.csr \
+#    -keyout certs/green.no.key
