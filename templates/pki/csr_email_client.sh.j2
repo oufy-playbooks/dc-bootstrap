@@ -3,7 +3,7 @@
 echo Hello, please enter the client email string of your certificate or hit Ctrl-c to cancel
 read user_email
 
-openssl req -new -config {{ cert_authorities.users.path }}/csr_email.cnf -out {{ cert_authorities.users.path }}/requests/${user_email}.csr.pem -keyout {{ cert_authorities.users.path }}/private/${user_email}.key.pem
+openssl req -new -config {{ cert_authorities.users.path }}/csr_email.cnf -out {{ cert_authorities.users.path }}/requests/${user_email}.csr.pem -keyout {{ cert_authorities.users.path }}/private/${user_email}.key.pem -passout pass{{ cert_authorities.users.ca_key_passphrase }}
 
 
 # openssl req -new \
