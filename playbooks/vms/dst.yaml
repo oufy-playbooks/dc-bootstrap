@@ -1,0 +1,20 @@
+---        
+- name: manage created VMs in ansible inventory
+  hosts: "localhost"
+  tasks:
+
+  - name: add dst VM in inventory
+    add_host:
+      name: "{{ dst_vm.name }}"
+      groups: dst
+      ansible_host: "{{ dst_vm.l3.interfaces.0.ip }}"
+      ansible_user: root
+      ansible_password: "{{ dst_vm.root_pw }}"
+
+- name: katello deployment
+  hosts: dst
+ 
+  tasks:
+  - name: Deploy katello
+    include: ../../tasks/deploy-katello.yaml
+

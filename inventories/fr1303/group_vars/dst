@@ -1,0 +1,8 @@
+dst:
+  repos:
+    katello:
+      release_rpm: "https://fedorapeople.org/groups/katello/releases/yum/3.12/katello/el{{ centos_version }}/x86_64/katello-repos-latest.rpm"
+    foreman:
+      release_rpm: "https://yum.theforeman.org/releases/1.22/el{{ centos_version }}/x86_64/foreman-release.rpm"
+    puppet:
+      release_rpm: "https://yum.puppet.com/puppet6-release-el-{{ centos_version }}.noarch.rpm"

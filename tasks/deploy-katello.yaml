@@ -1,0 +1,26 @@
+- name: Install release RPM packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+      - "{{ dst.repos.katello.release_rpm }}"
+      - "{{ dst.repos.foreman.release_rpm }}"
+      - "{{ dst.repos.puppet.release_rpm }}"
+      - epel-release
+      - foreman-release-scl
+
+- name: System update
+  include: system-update.yaml
+
+- name: Install katello package
+  yum:
+    name: katello
+    state: present
+
+- name: foreman installer answers file
+  template:
+    src: "../../templates/dst/old-katello-answers.yaml.j2"
+    dest: "/etc/foreman-installer/scenarios.d/katello-answers.yaml"
+    owner: root
+    group: root
+    mode: 0600

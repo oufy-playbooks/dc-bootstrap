@@ -1,0 +1,7 @@
+#!/bin/bash
+
+openssl ca -gencrl -config {{ cert_authorities.users.path }}/openssl.cnf -out {{ cert_authorities.users.path }}/crl/{{ cert_authorities.users.name }}.crl.pem -passin pass:{{ cert_authorities.users.ca_key_passphrase }}
+
+#openssl ca -gencrl \
+#    -config etc/email-ca.conf \
+#    -out crl/email-ca.crl

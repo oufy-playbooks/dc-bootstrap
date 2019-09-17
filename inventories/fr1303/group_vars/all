@@ -26,6 +26,7 @@ dst_vm:
   uuid: "d436ebcc-e04b-4b01-b5f7-1001239cd7af"
   name: "mgt-{{ site_name }}-01"
   domain_name: "{{ site_domain }}"
+  root_pw: 'M1the1tel!'
   mem: 12
   vcpu: 4
   description: "Katello Master Server"
@@ -63,6 +64,7 @@ pki_vm:
   uuid: "57969a2d-6ce6-4c8c-b13c-5447d26169fa"
   name: "pki-{{ site_name }}-01"
   domain_name: "{{ site_domain }}"
+  root_pw: 'M1the1tel!'
   mem: 2
   vcpu: 4
   description: "PKI CA Server"

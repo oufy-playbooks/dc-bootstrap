@@ -1,0 +1,20 @@
+---        
+- name: manage created VMs in ansible inventory
+  hosts: "localhost"
+  tasks:
+
+  - name: add pki VM in inventory
+    add_host:
+      name: "{{ pki_vm.name }}"
+      groups: pki
+      ansible_host: "{{ pki_vm.l3.interfaces.0.ip }}"
+      ansible_user: root
+      ansible_password: "{{ pki_vm.root_pw }}"
+  
+- name: small PKI deployment
+  hosts: pki
+ 
+  tasks:
+  - name: Deploy PKI
+    include: ../../tasks/deploy-pki.yaml
+

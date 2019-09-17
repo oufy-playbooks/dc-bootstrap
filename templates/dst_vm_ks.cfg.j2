@@ -26,7 +26,7 @@ network  --bootproto=static --device=eth0 --gateway={{ dst_vm.l3.interfaces.0.gw
 network  --bootproto=static --device=eth1 --ip={{ dst_vm.l3.interfaces.1.ip }} --netmask={{ dst_vm.l3.interfaces.1.nm }} --ipv6=auto --activate
 network  --hostname={{ dst_vm.name }}.{{ dst_vm.domain_name }}
 # Root password
-rootpw --iscrypted $6$cpZhz31nCR5jRkCu$eIzJpMKV9GLWMqNFMWnn0jyueRUNuLxELrVCNTofuXqR8Ai8veLHIXu5tSTXQaaCzHDHixbTk.a8LVt7pEYFQ0
+rootpw {{ dst_vm.root_pw }}
 # System timezone
 timezone Europe/Paris --isUtc
 # System bootloader configuration

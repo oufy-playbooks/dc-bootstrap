@@ -306,3 +306,65 @@
     group: root
     mode: 0700
     src: "../templates/pki/sign_email_client.sh.j2"
+
+- name: "deploy gencrl script for {{ cert_authorities.root.name }}"
+  template:
+    dest: "{{ cert_authorities.root.path }}/bin/gencrl.sh"
+    owner: root
+    group: root
+    mode: 0700
+    src: "../templates/pki/root_gencrl.sh.j2"
+- name: "deploy gencrl script for {{ cert_authorities.servers.name }}"
+  template:
+    dest: "{{ cert_authorities.servers.path }}/bin/gencrl.sh"
+    owner: root
+    group: root
+    mode: 0700
+    src: "../templates/pki/servers_gencrl.sh.j2"
+- name: "deploy gencrl script for {{ cert_authorities.users.name }}"
+  template:
+    dest: "{{ cert_authorities.users.path }}/bin/gencrl.sh"
+    owner: root
+    group: root
+    mode: 0700
+    src: "../templates/pki/users_gencrl.sh.j2"
+
+- name: "deploy revoke script for {{ cert_authorities.root.name }}"
+  template:
+    dest: "{{ cert_authorities.root.path }}/bin/revoke.sh"
+    owner: root
+    group: root
+    mode: 0700
+    src: "../templates/pki/root_revoke.sh.j2"
+- name: "deploy revoke script for {{ cert_authorities.servers.name }}"
+  template:
+    dest: "{{ cert_authorities.servers.path }}/bin/revoke.sh"
+    owner: root
+    group: root
+    mode: 0700
+    src: "../templates/pki/servers_revoke.sh.j2"
+- name: "deploy revoke script for {{ cert_authorities.users.name }}"
+  template:
+    dest: "{{ cert_authorities.users.path }}/bin/revoke.sh"
+    owner: root
+    group: root
+    mode: 0700
+    src: "../templates/pki/users_revoke.sh.j2"
+
+- name: "plan hourly gencrl execution for the 3 CAs"
+  cron:
+    name: "{{item.name}} gencrl"
+    user: root
+    minute: "{{ item.index }}"
+    hour: "*/4"
+    job: "{{ item.path }}/bin/gencrl.sh"
+  with_items:
+    - index: 0
+      name: "users"
+      path: "{{ cert_authorities.users.path }}"
+    - index: 5
+      name: "servers"
+      path: "{{ cert_authorities.servers.path }}"
+    - index: 10
+      name: "root"
+      path: "{{ cert_authorities.root.path }}"

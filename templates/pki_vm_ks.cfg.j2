@@ -25,7 +25,8 @@ logging --level=error
 network  --bootproto=static --device=eth0 --gateway={{ pki_vm.l3.interfaces.0.gw }} --ip={{ pki_vm.l3.interfaces.0.ip }} --nameserver={{ pki_vm.l3.dns.0 }},{{ pki_vm.l3.dns.1 }} --netmask={{ pki_vm.l3.interfaces.0.nm }} --ipv6=auto --activate
 network  --hostname={{ pki_vm.name }}.{{ pki_vm.domain_name }}
 # Root password
-rootpw --iscrypted $6$cpZhz31nCR5jRkCu$eIzJpMKV9GLWMqNFMWnn0jyueRUNuLxELrVCNTofuXqR8Ai8veLHIXu5tSTXQaaCzHDHixbTk.a8LVt7pEYFQ0
+rootpw {{ pki_vm.root_pw }}
+#rootpw --iscrypted $6$cpZhz31nCR5jRkCu$eIzJpMKV9GLWMqNFMWnn0jyueRUNuLxELrVCNTofuXqR8Ai8veLHIXu5tSTXQaaCzHDHixbTk.a8LVt7pEYFQ0
 # System timezone
 timezone Europe/Paris --isUtc
 # System bootloader configuration

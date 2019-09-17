@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo Hello, please enter the serial number of the certificate to revoke or hit Ctrl-c to cancel
+read cert_serial
+
+openssl ca -config {{ cert_authorities.users.path }}/openssl.cnf -revoke {{ cert_authorities.users.path }}/newcerts/${cert_serial}.pem -crl_reason keyCompromise -passin pass:{{ cert_authorities.users.ca_key_passphrase }}
+
+echo Generating {{ cert_authorities.users.name }} CRL...
+{{ cert_authorities.users.path }}/bin/gencrl.sh
