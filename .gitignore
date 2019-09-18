@@ -1,2 +1,6 @@
-files/id_ed25519
-README.md
+/fetched_files/
+/.idea/
+/README.md
+/files/id_ed25519
+**/*.retry
+**/*.swp

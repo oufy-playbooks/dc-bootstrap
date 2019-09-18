@@ -164,7 +164,7 @@
   when: servers_ca_csr_file
   register: servers_ca_cert_file
 - name: create servers ca cert chain
-  shell: "cat {{ cert_authorities.servers.path }}/certs/{{ cert_authorities.servers.name }}.crt {{ cert_authorities.root.path }}/certs/{{ cert_authorities.root.name }}.crt > {{ cert_authorities.servers.path }}/{{ cert_authorities.servers.name }}-chain.crt"
+  shell: "openssl crl2pkcs7 -nocrl -certfile {{ cert_authorities.servers.path }}/certs/{{ cert_authorities.servers.name }}.crt -certfile {{ cert_authorities.root.path }}/certs/{{ cert_authorities.root.name }}.crt -out {{ cert_authorities.servers.path }}/{{ cert_authorities.servers.name }}-chain.p7b"
   when: servers_ca_cert_file or root_ca_cert_file
 - name: generate servers ca crl
   shell: "openssl ca -gencrl -config {{ cert_authorities.servers.path }}/openssl.cnf -out {{ cert_authorities.servers.path }}/crl/{{ cert_authorities.servers.name }}.crl.pem -passin pass:{{ cert_authorities.servers.ca_key_passphrase }} -batch"
@@ -232,7 +232,7 @@
   when: users_ca_csr_file
   register: users_ca_cert_file
 - name: create users ca cert chain
-  shell: "cat {{ cert_authorities.users.path }}/certs/{{ cert_authorities.users.name }}.crt {{ cert_authorities.root.path }}/certs/{{ cert_authorities.root.name }}.crt > {{ cert_authorities.users.path }}/{{ cert_authorities.users.name }}-chain.crt"
+  shell: "openssl crl2pkcs7 -nocrl -certfile {{ cert_authorities.users.path }}/certs/{{ cert_authorities.users.name }}.crt -certfile {{ cert_authorities.root.path }}/certs/{{ cert_authorities.root.name }}.crt -out {{ cert_authorities.users.path }}/{{ cert_authorities.users.name }}-chain.p7b"
   when: users_ca_cert_file or root_ca_cert_file
 - name: generate users ca crl
   shell: "openssl ca -gencrl -config {{ cert_authorities.users.path }}/openssl.cnf -out {{ cert_authorities.users.path }}/crl/{{ cert_authorities.users.name }}.crl.pem -passin pass:{{ cert_authorities.users.ca_key_passphrase }} -batch"

@@ -90,3 +90,44 @@ pki_vm:
     system: vg_pki_{{ site_domain }}_01
     app:
     - vg_pki_{{ site_domain }}_01_pki
+
+cert_authorities:
+  root:
+    name: root_ca
+    path: "/data/oufy_ca/{{ pki_domain }}_root_ca"
+    ca_key_passphrase: 'Root%321!'
+    ca_key_cipher: 'aes-256-cbc'
+    country: FR
+    province_name: '13'
+    city: Belcodene
+    organisation: OufY.net
+    email: certadmin@oufy.net
+    ou_name: "{{ site_name }}"
+    ca_chain_der: ""
+
+  servers:
+    name: servers_ca
+    path: "/data/oufy_ca/{{ pki_domain }}_servers_ca"
+    ca_key_passphrase: 'Servers%321!'
+    ca_key_cipher: 'aes-256-cbc'
+    country: FR
+    province_name: '13'
+    city: Belcodene
+    organisation: OufY.net
+    email: certadmin@oufy.net
+    ou_name: "{{ site_name }}"
+    ca_chain_der: ""
+
+  users:
+    name: users_ca
+    path: "/data/oufy_ca/{{ pki_domain }}_users_ca"
+    ca_key_passphrase: 'Users%321'
+    ca_key_cipher: 'aes-256-cbc'
+    country: FR
+    province_name: '13'
+    city: Belcodene
+    organisation: OufY.net
+    email: certadmin@oufy.net
+    ou_name: "{{ site_name }}"
+    ca_chain_der: ""
+

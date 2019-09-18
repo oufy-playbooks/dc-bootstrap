@@ -1,3 +1,6 @@
+- debug:
+    msg: "{{ root_ca_cert.content | b64decode }}"
+
 - name: Install release RPM packages
   yum:
     name: "{{ item }}"
@@ -19,7 +22,7 @@
 
 - name: foreman installer answers file
   template:
-    src: "../../templates/dst/old-katello-answers.yaml.j2"
+    src: "../../templates/dst/katello-answers.yaml.j2"
     dest: "/etc/foreman-installer/scenarios.d/katello-answers.yaml"
     owner: root
     group: root

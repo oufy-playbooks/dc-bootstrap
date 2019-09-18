@@ -18,3 +18,5 @@
   - name: Deploy PKI
     include: ../../tasks/deploy-pki.yaml
 
+  - name: Fetch cacert files
+    include: ../../tasks/pki-get_ca_certs.yaml

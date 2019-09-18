@@ -1,0 +1,10 @@
+---
+- name: Fetch the CA certs files
+  fetch:
+    dest: ../../fetched_files/
+    src: "{{ item }}"
+  with_items:
+  - "{{ cert_authorities.root.path }}/certs/{{ cert_authorities.root.name }}.crt"
+  - "{{ cert_authorities.servers.path }}/certs/{{ cert_authorities.servers.name }}.crt"
+  - "{{ cert_authorities.users.path }}/certs/{{ cert_authorities.users.name }}.crt"
+
