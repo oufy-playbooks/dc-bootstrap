@@ -148,6 +148,14 @@ foreman:
   - https://intranet.{{ site_domain }}
   - http://portal.{{ site_domain }}
   - https://portal.{{ site_domain }}
+  - http://{{ dst_vm.name }}.{{ dst_vm.domain_name }}
+  - https://{{ dst_vm.name }}.{{ dst_vm.domain_name }}
+  - http://{{ dst_vm.name }}.admin.{{ dst_vm.domain_name }}
+  - https://{{ dst_vm.name }}.admin.{{ dst_vm.domain_name }}
+  - http://{{ dst_vm.name }}.pxe.{{ dst_vm.domain_name }}
+  - https://{{ dst_vm.name }}.pxe.{{ dst_vm.domain_name }}
+  - http://{{ dst_vm.name }}
+  - https://{{ dst_vm.name }}
 foreman::cli:
   foreman_url: https://{{ dst_vm.name }}.{{ dst_vm.domain_name }}
   version: installed

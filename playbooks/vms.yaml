@@ -17,6 +17,7 @@
       - yum-utils
       - vim-enhanced
       - screen
+      - bash-completion
 
   - name: System update
     include: ../tasks/system-update.yaml
@@ -27,10 +28,11 @@
       key: "{{ lookup('file', '../files/id_ed25519.pub') }}"
       user: "{{ ansible_user }}"
 
-- name: configure chrony
+- name: configure chrony and memcached
   hosts: pki:dst
   roles:
     - role: linuxhq.chrony
+    - role: geerlingguy.memcached
   vars:
     chrony_commands:
       server:
