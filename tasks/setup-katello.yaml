@@ -1,0 +1,26 @@
+---
+- name: set admin interface ip in /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    regexp: '^{{ dst_vm.l3.interfaces.0.ip }}'
+    line: "{{ dst_vm.l3.interfaces.0.ip }} {{dst_vm.name}}.{{dst_vm.domain_name}} {{dst_vm.name}} {{dst_vm.name}}.admin.{{dst_vm.domain_name}}"
+    owner: root
+    group: root
+    mode: 0644
+- name: set pxe interface ip in /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    regexp: '^{{ dst_vm.l3.interfaces.1.ip }}'
+    line: "{{ dst_vm.l3.interfaces.1.ip }} {{dst_vm.name}}.pxe.{{dst_vm.domain_name}}"
+    owner: root
+    group: root
+    mode: 0644
+- name: foreman installer answers file
+  template:
+    src: "../../templates/dst/katello-answers.yaml.j2"
+    dest: "/etc/foreman-installer/scenarios.d/katello-answers.yaml"
+    owner: root
+    group: root
+    mode: 0600
+#- name: prepare katello SSL package
+#  shell: "/usr/bin/katello-ssl-tool --gen-server --set-hostname {{dst_vm.name}}.{{dst_vm.domain_name}} --server-cert {{dst_vm.name}}.{{dst_vm.domain_name}}-apache.crt --server-cert-req {{dst_vm.name}}.{{dst_vm.domain_name}}-apache.crt.req --server-key {{dst_vm.name}}.{{dst_vm.domain_name}}-apache.key --server-rpm {{dst_vm.name}}.{{dst_vm.domain_name}}-apache --rpm-only"

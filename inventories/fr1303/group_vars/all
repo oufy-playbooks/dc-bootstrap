@@ -33,11 +33,11 @@ dst_vm:
   int_pxe:
     mac: '52:54:00:d3:fc:c5'
     model: 'virtio'
-    index: 0
+    index: 1
   int_adm:
     mac: '52:54:00:8e:bb:fd'
     model: 'virtio'
-    index: 1
+    index: 0
   os_disk:
     format: "qcow2"
     size: "60G"
@@ -131,3 +131,13 @@ cert_authorities:
     ou_name: "{{ site_name }}"
     ca_chain_der: ""
 
+  katello:
+    name: katello_ca
+    ca_key_passphrase: gHRJwF9CVjxaf88z7TbT
+    ca_key_cipher: 'aes-256-cbc'
+    country: FR
+    province_name: '13'
+    city: Belcodene
+    organisation: OufY.net
+    email: certadmin@oufy.net
+    ou_name: "{{ site_name }}"

@@ -3,18 +3,26 @@
   hosts: "localhost"
   tasks:
 
-  - name: add dst VM in inventory
-    add_host:
-      name: "{{ dst_vm.name }}"
-      groups: dst
-      ansible_host: "{{ dst_vm.l3.interfaces.0.ip }}"
-      ansible_user: root
-      ansible_password: "{{ dst_vm.root_pw }}"
+    - name: add VMs in inventory
+      include: ../../tasks/extend-inventory.yaml
 
-- name: katello deployment
+- name: katello packages deployment
   hosts: dst
- 
+
   tasks:
   - name: Deploy katello
-    include: ../../tasks/deploy-katello.yaml
+    include: ../../tasks/deploy-katello-packages.yaml
 
+- name: create and fetch Katello cert
+  hosts: pki
+  tasks:
+    - name: Katello cert create and fetch
+      include: ../../tasks/generate_katello_certs.yaml
+
+- name: configure Katello
+  hosts: dst
+  tasks:
+    - name: Import katello certificate datas
+      include: ../../tasks/import_katello_certs.yaml
+    - name: Setup Katello
+      include: ../../tasks/setup-katello.yaml

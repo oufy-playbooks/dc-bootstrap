@@ -1,0 +1,43 @@
+---
+- name: create Katello server key
+  openssl_privatekey:
+    cipher: "{{ cert_authorities.servers.ca_key_cipher }}"
+    passphrase: "{{  dst_vm.root_pw }}"
+    group: root
+    owner: root
+    mode: 0600
+    path: "{{ cert_authorities.servers.path }}/private/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.key.pem"
+    size: 2048
+    state: present
+    type: RSA
+  register: katello_private_key
+
+- name: check Katello cert existence
+  stat:
+    path: "{{ cert_authorities.servers.path }}/certs/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.crt"
+  register: katello_cert_file
+
+- name: request katello cert
+  shell: "SAN=DNS:{{ dst_vm.name }}.{{ dst_vm.domain_name }} openssl req -new -config {{ cert_authorities.servers.path }}/csr_tls_servers.cnf -out {{ cert_authorities.servers.path }}/requests/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.csr.pem -key {{ cert_authorities.servers.path }}/private/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.key.pem -passin pass:{{ dst_vm.root_pw }} -batch -subj \'/C={{ cert_authorities.servers.country }}/ST={{ cert_authorities.servers.province_name }}/L={{ cert_authorities.servers.city }}/O={{ cert_authorities.servers.organisation }}/OU={{ cert_authorities.servers.ou_name }}/CN={{ dst_vm.name }}.{{ dst_vm.domain_name }}/\'"
+  when: katello_private_key.changed or not(katello_cert_file.stat.exists)
+  register: katello_csr_file
+
+- name: generate Katello cert
+  shell: "openssl ca -config {{ cert_authorities.servers.path }}/openssl.cnf -in {{ cert_authorities.servers.path }}/requests/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.csr.pem -out {{ cert_authorities.servers.path }}/certs/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.crt -extensions server_ext -passin pass:{{ cert_authorities.servers.ca_key_passphrase }} -batch"
+  args:
+    creates: "{{ cert_authorities.servers.path }}/certs/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.crt"
+  when: katello_csr_file.changed or not(katello_cert_file.stat.exists)
+  register: katello_cert_file
+- name: update servers ca CRL
+  shell: "{{ cert_authorities.servers.path }}/bin/gencrl.sh"
+  when: katello_cert_file.changed
+
+- name: Fetch Katello cert files
+  fetch:
+    dest: ../../fetched_files/
+    src: "{{ item }}"
+  with_items:
+    - "{{ cert_authorities.servers.path }}/private/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.key.pem"
+    - "{{ cert_authorities.servers.path }}/certs/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.crt"
+    - "{{ cert_authorities.servers.path }}/requests/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.csr.pem"
+    - "{{ cert_authorities.servers.path }}/certs/{{ cert_authorities.servers.name }}.crt"

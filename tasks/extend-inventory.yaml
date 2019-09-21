@@ -1,0 +1,14 @@
+- name: add pki VM in inventory
+  add_host:
+    name: "{{ pki_vm.name }}"
+    groups: pki
+    ansible_host: "{{ pki_vm.l3.interfaces.0.ip }}"
+    ansible_user: root
+    ansible_password: "{{ pki_vm.root_pw }}"
+- name: add dst VM in inventory
+  add_host:
+    name: "{{ dst_vm.name }}"
+    groups: dst
+    ansible_host: "{{ dst_vm.l3.interfaces.0.ip }}"
+    ansible_user: root
+    ansible_password: "{{ dst_vm.root_pw }}"

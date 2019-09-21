@@ -1,16 +1,19 @@
-- debug:
-    msg: "{{ root_ca_cert.content | b64decode }}"
-
+---
 - name: Install release RPM packages
   yum:
-    name: "{{ item }}"
-    state: present
-  with_items:
+    name:
       - "{{ dst.repos.katello.release_rpm }}"
       - "{{ dst.repos.foreman.release_rpm }}"
       - "{{ dst.repos.puppet.release_rpm }}"
       - epel-release
+    state: present
+
+- name: Install foreman-scl release RPM package
+  yum:
+    name:
       - foreman-release-scl
+    state: present
+
 
 - name: System update
   include: system-update.yaml
@@ -20,10 +23,3 @@
     name: katello
     state: present
 
-- name: foreman installer answers file
-  template:
-    src: "../../templates/dst/katello-answers.yaml.j2"
-    dest: "/etc/foreman-installer/scenarios.d/katello-answers.yaml"
-    owner: root
-    group: root
-    mode: 0600

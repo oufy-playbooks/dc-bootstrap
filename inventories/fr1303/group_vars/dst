@@ -6,3 +6,38 @@ dst:
       release_rpm: "https://yum.theforeman.org/releases/1.22/el{{ centos_version }}/x86_64/foreman-release.rpm"
     puppet:
       release_rpm: "https://yum.puppet.com/puppet6-release-el-{{ centos_version }}.noarch.rpm"
+  foreman:
+    organisation: "OufY.net"
+    location: "FR1303"
+    pg_user: foreman
+    pg_pass: "D6X7wGC2CAbtKowyxiT9"
+    candlepin:
+      dbname: candlepin
+      dbuser: candlepin
+      dbpass: H9mgkFiiyV8mzoVmGMVPhiHdVXd68vFs
+    admin:
+      login: oufy
+      pass: Gl0rf1ndel!
+      email: sebastien.longo@oufy.net
+      firstname: Sebastien
+      lastname: LONGO
+    oauth:
+      consumer_key: ghUDTBCv8R3Zb2TBxJQDbDcPJNPPFLxt
+      consumer_secret: hqFoLkvmKdqx7QY9yKU2rjyG9grJXJwF
+    katello:
+      post_sync_token: niAXr3kcN2psPkT42XbYgcb8zhnbRASv
+      oauth:
+        candlepin_key: katello
+        candlepin_secret: NhV8NVeN2odVL7jTCdiNHJiTMzsezffa
+    dhcp:
+      key_name: oufy_dhcp_key_fr1303
+      key_secret: "sohqB0lXGKx3kUMVNLb1V560ytqaHvgakcyXCSyKjHWKWi67BcMCMbVPFG+bf97n6SabjYIZPGxySuYEyU2EVg=="
+    pulp:
+      admin_pass: "bGAcUHkDQu5Mn7vt9QtfemGDCjyYvHgW"
+      dbname: pulp_database
+      dbuser: pulp
+      dbpass: LxGs777iN9q4oGAWdCwY
+    qpid:
+      agent:
+        user: katello_agent
+        pass: MNGrZyG3BnKf6gBA

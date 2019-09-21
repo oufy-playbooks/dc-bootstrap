@@ -1,0 +1,50 @@
+---
+- name: prepare folder katello certs folder
+  file:
+    state: directory
+    owner: root
+    group: foreman
+    mode: 0644
+    path: "/etc/pki/katello-import"
+    seuser: system_u
+    serole: object_r
+    setype: cert_t
+
+
+- name: inject servers_ca CRT
+  template:
+    dest: "/etc/pki/katello-import/{{ cert_authorities.servers.name }}.crt"
+    owner: root
+    group: foreman
+    mode: 0644
+    src: "../fetched_files/{{ pki_vm.name }}/{{ cert_authorities.servers.path }}/certs/{{ cert_authorities.servers.name }}.crt"
+- name: inject root_ca CRT
+  template:
+    dest: "/etc/pki/katello-import/{{ cert_authorities.root.name }}.crt"
+    owner: root
+    group: foreman
+    mode: 0644
+    src: "../fetched_files/{{ pki_vm.name }}/{{ cert_authorities.root.path }}/certs/{{ cert_authorities.root.name }}.crt"
+- name: inject katello CRT
+  template:
+    dest: "/etc/pki/katello-import/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.crt"
+    owner: root
+    group: foreman
+    mode: 0644
+    src: "../fetched_files/{{ pki_vm.name }}/{{ cert_authorities.servers.path }}/certs/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.crt"
+- name: inject katello CSR
+  template:
+    dest: "/etc/pki/katello-import/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.csr"
+    owner: root
+    group: foreman
+    mode: 0640
+    src: "../fetched_files/{{ pki_vm.name }}/{{ cert_authorities.servers.path }}/requests/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.csr.pem"
+- name: inject katello KEY
+  template:
+    dest: "/etc/pki/katello-import/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.key"
+    owner: root
+    group: foreman
+    mode: 0640
+    src: "../fetched_files/{{ pki_vm.name }}/{{ cert_authorities.servers.path }}/private/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.key.pem"
+- name: create CA bundle
+  shell: "cat /etc/pki/katello-import/{{ cert_authorities.root.name }}.crt /etc/pki/katello-import/{{ cert_authorities.servers.name }}.crt > /etc/pki/katello-import/{{ cert_authorities.servers.name }}-bundle.crt"

@@ -44,7 +44,7 @@ logvol /  --fstype="xfs" --size=30720 --label="root" --name=root --vgname={{ dst
 logvol /var  --fstype="xfs" --size=10240 --label="var" --name=var --vgname={{ dst_vm.vg.system }}
 logvol /tmp  --fstype="xfs" --size=4192 --label="tmp" --name=tmp --vgname={{ dst_vm.vg.system }}
 logvol /var/lib/pulp  --fstype="xfs" --size=204800 --label="pulp" --name=pulp --vgname={{ dst_vm.vg.app.0 }}
-logvol /data/puppet_repo  --fstype="xfs" --size=20480 --label="puppet" --name=puppet --vgname={{ dst_vm.vg.app.0 }}
+logvol /etc/puppetlabs/code/environments  --fstype="xfs" --size=20480 --label="puppet" --name=puppet --vgname={{ dst_vm.vg.app.0 }}
 logvol /var/lib/mongodb  --fstype="xfs" --size=41920 --label="mongodb" --name=mongodb --vgname={{ dst_vm.vg.app.0 }}
 
 eula --agreed

@@ -3,13 +3,8 @@
   hosts: "localhost"
   tasks:
 
-  - name: add pki VM in inventory
-    add_host:
-      name: "{{ pki_vm.name }}"
-      groups: pki
-      ansible_host: "{{ pki_vm.l3.interfaces.0.ip }}"
-      ansible_user: root
-      ansible_password: "{{ pki_vm.root_pw }}"
+    - name: add VMs in inventory
+      include: ../../tasks/extend-inventory.yaml
   
 - name: small PKI deployment
   hosts: pki

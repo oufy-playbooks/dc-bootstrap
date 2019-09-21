@@ -3,20 +3,8 @@
   hosts: "localhost"
   tasks:
 
-  - name: add pki VM in inventory
-    add_host:
-      name: "{{ pki_vm.name }}"
-      groups: pki
-      ansible_host: "{{ pki_vm.l3.interfaces.0.ip }}"
-      ansible_user: root
-      ansible_password: "{{ pki_vm.root_pw }}"
-  - name: add dst VM in inventory
-    add_host:
-      name: "{{ dst_vm.name }}"
-      groups: dst
-      ansible_host: "{{ dst_vm.l3.interfaces.0.ip }}"
-      ansible_user: root
-      ansible_password: "{{ dst_vm.root_pw }}"
+  - name: add VMs in inventory
+    include: ../tasks/extend-inventory.yaml
 
 - name: manage created VMs
   hosts: pki:dst
@@ -28,6 +16,7 @@
       name:
       - yum-utils
       - vim-enhanced
+      - screen
 
   - name: System update
     include: ../tasks/system-update.yaml
@@ -62,6 +51,28 @@
       local: stratum 10
     chrony_sysconfig: '-F 1'
 
-        
+
 - name: small PKI deployment
   import_playbook: vms/pki.yaml
+
+- name: inject PKI cacerts in system truststores
+  hosts: pki:dst
+
+  tasks:
+    - name: inject cacerts
+      template:
+        dest: "/etc/pki/ca-trust/source/anchors/{{ item.basename }}"
+        owner: root
+        group: root
+        mode: 0644
+        src: "../fetched_files/{{ pki_vm.name }}/{{ item.basepath }}/certs/{{ item.basename }}"
+      with_items:
+        - {basename: "{{ cert_authorities.root.name }}.crt", basepath: "{{ cert_authorities.root.path }}"}
+        - {basename: "{{ cert_authorities.servers.name }}.crt", basepath: "{{ cert_authorities.servers.path }}"}
+        - {basename: "{{ cert_authorities.users.name }}.crt", basepath: "{{ cert_authorities.users.path }}"}
+
+    - name: update-ca-trust
+      shell: "update-ca-trust"
+
+- name: Katello deployment
+  import_playbook: vms/dst.yaml
