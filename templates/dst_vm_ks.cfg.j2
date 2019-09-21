@@ -16,7 +16,7 @@ keyboard --vckeymap=fr --xlayouts='fr (oss)'
 lang fr_FR.UTF-8
 
 # FW
-firewall --enabled --ssh
+firewall --enabled --ssh  --trust eth0 --trust eth1
 
 # logging
 logging --level=error
