@@ -95,10 +95,10 @@ foreman:
   keepalive: true
   max_keepalive_requests: 10000
   keepalive_timeout: 5
-#  oauth_active: true
-#  oauth_map_users: false
-#  oauth_consumer_key: {{ dst.foreman.oauth.consumer_key }}
-#  oauth_consumer_secret: {{ dst.foreman.oauth.consumer_secret }}
+  oauth_active: true
+  oauth_map_users: false
+  oauth_consumer_key: {{ dst.foreman.oauth.consumer_key }}
+  oauth_consumer_secret: {{ dst.foreman.oauth.consumer_secret }}
   passenger_prestart: true
   passenger_min_instances: 1
   passenger_start_timeout: 90
@@ -390,9 +390,9 @@ foreman_proxy:
   foreman_base_url: https://{{ dst_vm.name }}.{{ dst_vm.domain_name }}
   registered_name: {{ dst_vm.name }}.{{ dst_vm.domain_name }}
   registered_proxy_url: 
-#  oauth_effective_user: {{ dst.foreman.admin.login }}
-#  oauth_consumer_key: {{ dst.foreman.oauth.consumer_key }}
-#  oauth_consumer_secret: {{ dst.foreman.oauth.consumer_secret }}
+  oauth_effective_user: {{ dst.foreman.admin.login }}
+  oauth_consumer_key: {{ dst.foreman.oauth.consumer_key }}
+  oauth_consumer_secret: {{ dst.foreman.oauth.consumer_secret }}
   puppet_use_cache: 
 foreman_proxy_content:
   parent_fqdn: {{ dst_vm.name }}.{{ dst_vm.domain_name }}
@@ -493,9 +493,9 @@ katello:
   group: foreman
   user_groups:
   - foreman
-#  candlepin_oauth_key: {{ dst.foreman.katello.oauth.candlepin_key }}
-#  candlepin_oauth_secret: {{ dst.foreman.katello.oauth.candlepin_secret }}
-#  post_sync_token: {{ dst.foreman.katello.post_sync_token }}
+  candlepin_oauth_key: {{ dst.foreman.katello.oauth.candlepin_key }}
+  candlepin_oauth_secret: {{ dst.foreman.katello.oauth.candlepin_secret }}
+  post_sync_token: {{ dst.foreman.katello.post_sync_token }}
   rest_client_timeout: 3600
   qpid_wcache_page_size: 4
   qpid_interface: lo
