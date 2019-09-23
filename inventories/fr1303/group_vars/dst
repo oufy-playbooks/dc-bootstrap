@@ -6,6 +6,10 @@ dst:
       release_rpm: "https://yum.theforeman.org/releases/1.22/el{{ centos_version }}/x86_64/foreman-release.rpm"
     puppet:
       release_rpm: "https://yum.puppet.com/puppet6-release-el-{{ centos_version }}.noarch.rpm"
+  locked_rpms: "java-1.8.0-openjdk java-1.8.0-openjdk-headless"
+  java_rpm_urls:
+    - "http://mirrors.ircam.fr/pub/CentOS/7.6.1810/updates/x86_64/Packages/java-1.8.0-openjdk-1.8.0.222.b10-0.el7_6.x86_64.rpm"
+    - "http://mirrors.ircam.fr/pub/CentOS/7.6.1810/updates/x86_64/Packages/java-1.8.0-openjdk-headless-1.8.0.222.b10-0.el7_6.x86_64.rpm"
   foreman:
     organisation: "OufY.net"
     location: "FR1303"

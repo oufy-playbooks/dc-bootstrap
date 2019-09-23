@@ -8,8 +8,26 @@
 
 - name: katello packages deployment
   hosts: dst
-
+  roles:
+    - role: linuxhq.yum
+      yum_conf:
+        main:
+          exclude: "{{ dst.locked_rpms }}"
+          cachedir: "/var/cache/yum/$basearch/$releasever"
+          keepcache: "0"
+          debuglevel: "2"
+          logfile: "/var/log/yum.log"
+          exactarch: "1"
+          obsoletes: "1"
+          gpgcheck: "1"
+          plugins: "1"
+          installonly_limit: "5"
+          bugtracker_url: "http://bugs.centos.org/set_project.php?project_id=23&ref=http://bugs.centos.org/bug_report_page.php?category=yum"
+          distroverpkg: "centos-release"
   tasks:
+  - name: Prepare Java packages installation and protection
+    include: ../../tasks/katello_java_install.yaml
+
   - name: Deploy katello
     include: ../../tasks/deploy-katello-packages.yaml
 
