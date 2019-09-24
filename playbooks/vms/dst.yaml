@@ -6,6 +6,12 @@
     - name: add VMs in inventory
       include: ../../tasks/extend-inventory.yaml
 
+- name: Java openjdk deployment
+  hosts: dst
+  tasks:
+  - name: Prepare Java packages installation and protection
+    include: ../../tasks/katello_java_install.yaml
+
 - name: katello packages deployment
   hosts: dst
   roles:
@@ -25,9 +31,6 @@
           bugtracker_url: "http://bugs.centos.org/set_project.php?project_id=23&ref=http://bugs.centos.org/bug_report_page.php?category=yum"
           distroverpkg: "centos-release"
   tasks:
-  - name: Prepare Java packages installation and protection
-    include: ../../tasks/katello_java_install.yaml
-
   - name: Deploy katello
     include: ../../tasks/deploy-katello-packages.yaml
 

@@ -8,8 +8,8 @@
 
 ---
 certs:
-  log_dir: /var/log/certs
-  node_fqdn: {{ dst_vm.name }}.{{ dst_vm.domain_name }}
+#  log_dir: /var/log/certs
+#  node_fqdn: {{ dst_vm.name }}.{{ dst_vm.domain_name }}
 #  cname: []
   generate: true
 #  regenerate: false
@@ -23,12 +23,12 @@ certs:
 #  org_unit: {{ cert_authorities.servers.ou_name }}
 #  expiration: '7300'
 #  ca_expiration: '36500'
-  server_cert: /etc/pki/katello-import/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.crt
-  server_key: /etc/pki/katello-import/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.key
-  server_cert_req: /etc/pki/katello-import/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.csr
-  server_ca_cert: /etc/pki/katello-import/{{ cert_authorities.servers.name }}-bundle.crt
-  pki_dir: /etc/pki/katello
-  ssl_build_dir: /root/ssl-build
+#  server_cert: /etc/pki/katello-import/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.crt
+#  server_key: /etc/pki/katello-import/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.key
+#  server_cert_req: /etc/pki/katello-import/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.csr
+#  server_ca_cert: /etc/pki/katello-import/{{ cert_authorities.servers.name }}-bundle.crt
+#  pki_dir: /etc/pki/katello
+#  ssl_build_dir: /root/ssl-build
 #  user: root
   group: foreman
 #  default_ca_name: katello-default-ca

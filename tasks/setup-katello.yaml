@@ -22,5 +22,11 @@
     owner: root
     group: root
     mode: 0600
-#- name: prepare katello SSL package
-#  shell: "/usr/bin/katello-ssl-tool --gen-server --set-hostname {{dst_vm.name}}.{{dst_vm.domain_name}} --server-cert {{dst_vm.name}}.{{dst_vm.domain_name}}-apache.crt --server-cert-req {{dst_vm.name}}.{{dst_vm.domain_name}}-apache.crt.req --server-key {{dst_vm.name}}.{{dst_vm.domain_name}}-apache.key --server-rpm {{dst_vm.name}}.{{dst_vm.domain_name}}-apache --rpm-only"
+- name: Katello initial deployment
+  shell: "/usr/sbin/foreman-installer --scenario katello"
+  args:
+    creates: "/var/log/foreman-installer/katello.log"
+- name: Katello custom CA certs update
+  shell: "/usr/sbin/foreman-installer --scenario katello --certs-server-cert /etc/pki/katello-import/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.crt --certs-server-cert-req /etc/pki/katello-import/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.csr --certs-server-key /etc/pki/katello-import/{{ dst_vm.name }}.{{ dst_vm.domain_name }}.key --certs-server-ca-cert /etc/pki/katello-import/{{ cert_authorities.servers.name }}-bundle.crt --certs-update-server --certs-update-server-ca && touch /tmp/katello-install-done.txt"
+  args:
+    creates: "/tmp/katello-install-done.txt"

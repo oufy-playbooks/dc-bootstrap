@@ -1,8 +1,5 @@
 ---
 - name: install java packages
   yum:
-    name:
-      - "{{ dst.java_rpm_urls.0 }}"
-      - "{{ dst.java_rpm_urls.1 }}"
+    name: "{{ dst.java_rpm_urls }}"
     state: present
-
