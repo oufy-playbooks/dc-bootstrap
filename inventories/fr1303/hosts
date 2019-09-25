@@ -5,6 +5,8 @@ vmh-fr6101-01 ansible_host=172.20.2.73 ansible_user=root
 
 [dst]
 
+[tst]
+
 [ansible_bootstrap]
 localhost ansible_host=127.0.0.1
 

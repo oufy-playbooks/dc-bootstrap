@@ -32,13 +32,6 @@
       - isos
       - kickstarts
 
-#  - name: PXE net XML conf on bootstrap disk
-#    template:
-#      owner: root
-#      group: root
-#      mode: 0644
-#      dest: "{{ bootstrap_pool_mount_path }}/confs/net-vlan{{ '%04d' | format(net_pxe.id|int) }}.xml"
-#      src: "../templates/net-pxe.xml.j2"
   - name: PXE virsh net definition
     virt_net:
       name: "vlan{{ '%04d' | format(net_pxe.id|int) }}"
@@ -55,14 +48,6 @@
       name: "vlan{{ '%04d' | format(net_pxe.id|int) }}"
       uri: "qemu:///system"
       state: active
-
-#  - name: Admin net XML conf on bootstrap disk
-#    template:
-#      owner: root
-#      group: root
-#      mode: 0644
-#      dest: "{{ bootstrap_pool_mount_path }}/confs/net-vlan{{ '%04d' | format(net_admin.id|int) }}.xml"
-#      src: "../templates/net-admin.xml.j2"
 
   - name: Admin virsh net definition
     virt_net:

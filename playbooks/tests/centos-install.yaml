@@ -1,0 +1,126 @@
+---
+- name: create bootstrap VMs
+  hosts: "libvirt"
+
+  tasks:
+    - name: Bootstrap virsh pool definition
+      virt_pool:
+        name: "{{ bootstrap_pool_name }}"
+        command: define
+        xml: "{{ lookup('template', '../../templates/bootstrap_pool.xml.j2') }}"
+        uri: "qemu:///system"
+    - name: Bootstrap virsh pool autostart
+      virt_pool:
+        name: "{{ bootstrap_pool_name }}"
+        autostart: yes
+        uri: "qemu:///system"
+    - name: Bootstrap virsh pool start
+      virt_pool:
+        name: "{{ bootstrap_pool_name }}"
+        uri: "qemu:///system"
+        state: active
+    - name: Check Folders in the pool
+      file:
+        state: directory
+        path: "{{ bootstrap_pool_mount_path }}/{{ item }}"
+        owner: root
+        group: root
+        mode: 0755
+      with_items:
+        - confs
+        - images
+        - isos
+        - kickstarts
+
+    - name: Admin virsh net definition
+      virt_net:
+        name: "vlan{{ '%04d' | format(net_admin.id|int) }}"
+        command: define
+        xml: "{{ lookup('template', '../../templates/net-admin.xml.j2') }}"
+        uri: "qemu:///system"
+    - name: autostart Admin network
+      virt_net:
+        name: "vlan{{ '%04d' | format(net_admin.id|int) }}"
+        uri: "qemu:///system"
+        autostart: yes
+    - name: start Admin network
+      virt_net:
+        name: "vlan{{ '%04d' | format(net_admin.id|int) }}"
+        uri: "qemu:///system"
+        state: active
+
+    - name: Centos netinstall ISO
+      get_url:
+        dest: "{{ bootstrap_pool_mount_path }}/isos/centos_netinstall-{{ centos_version }}-{{ centos_build }}.iso"
+        group: qemu
+        owner: qemu
+        mode: 0644
+        url: "{{ centos_netinstall.url }}"
+        checksum: "{{ centos_netinstall.checksum }}"
+
+    - name: tst VM kickstart file
+      template:
+        owner: root
+        group: root
+        mode: 0644
+        dest: "{{ bootstrap_pool_mount_path }}/kickstarts/ks_{{tst_vm.name}}.cfg"
+        src: "../../templates/tests/tst_vm_ks.cfg.j2"
+      register: tst_vm_ks_file
+
+    - name: kickstart iso image presence check
+      stat:
+        path: "{{ bootstrap_pool_mount_path }}/isos/ks.iso"
+      register: ks_iso_file
+    - name: remove kickstart iso image
+      file:
+        path: "{{ bootstrap_pool_mount_path }}/isos/ks.iso"
+        state: absent
+      when: ks_iso_file.stat.exists and tst_vm_ks_file.changed
+    - name: kickstart iso image generation
+      shell: "mkisofs -o {{ bootstrap_pool_mount_path }}/isos/ks.iso -full-iso9660-filenames {{ bootstrap_pool_mount_path }}/kickstarts/"
+      args:
+        creates: "{{ bootstrap_pool_mount_path }}/isos/ks.iso"
+      when: tst_vm_ks_file.changed or not(ks_iso_file.stat.exists)
+    - name: kickstart iso image mode fix
+      file:
+        path: "{{ bootstrap_pool_mount_path }}/isos/ks.iso"
+        state: file
+        owner: qemu
+        group: qemu
+        mode: 0644
+
+    - name: tst VM OS disk presence check
+      stat:
+        path: "{{ bootstrap_pool_mount_path }}/images/{{ tst_vm.name }}-disk0.{{ tst_vm.os_disk.format }}"
+      register: tst_os_disk
+    - name: create tst VM OS disk
+      shell: "qemu-img create -f {{ tst_vm.os_disk.format }} {{ bootstrap_pool_mount_path }}/images/{{ tst_vm.name }}-disk0.{{ tst_vm.os_disk.format }} {{ tst_vm.os_disk.size }}"
+      when: tst_os_disk.stat.exists == false
+
+    - name: tst VMs XML conf on bootstrap disk
+      template:
+        owner: root
+        group: root
+        mode: 0644
+        dest: "{{ bootstrap_pool_mount_path }}/confs/{{tst_vm.name}}.xml"
+        src: "../../templates/tests/tst_vm.xml.j2"
+      register: tst_vm_xml_file
+    - name: undefine existing tst VM
+      virt:
+        name: "{{ tst_vm.name }}"
+        command: undefine
+        uri: "qemu:///system"
+      when: tst_vm_xml_file.changed
+      ignore_errors: True
+    - name: define tst VM
+      virt:
+        name: "{{ tst_vm.name }}"
+        command: define
+        xml: "{{ lookup('template', '../../templates/tests/tst_vm.xml.j2') }}"
+        uri: "qemu:///system"
+    - name: set tst VM status
+      virt:
+        name: "{{ tst_vm.name }}"
+        autostart: no
+        state: shutdown
+        uri: "qemu:///system"

@@ -5,13 +5,13 @@ pki_domain: "oufy"
 bootstrap_pool_uuid: 7660c607-d68b-4d51-a2bf-ab28baca5a93
 bootstrap_pool_name: usb_ssd_DC_start
 bootstrap_pool_mount_path: "/var/lib/libvirt/images/{{ bootstrap_pool_name }}"
-centos_version: 7
-centos_build: 1810
+centos_version: 8
+centos_build: 1905
 centos_netinstall:
-  url: "http://mirrors.ircam.fr/pub/CentOS/{{ centos_version }}/isos/x86_64/CentOS-{{ centos_version }}-x86_64-NetInstall-{{ centos_build }}.iso"
-  checksum: "sha256:19d94274ef856c4dfcacb2e7cfe4be73e442a71dd65cc3fb6e46db826040b56e"
+  url: "http://mirrors.ircam.fr/pub/CentOS/{{ centos_version }}/isos/x86_64/CentOS-{{ centos_version }}-x86_64-{{ centos_build }}-boot.iso"
+  checksum: "sha256:a7993a0d4b7fef2433e0d4f53530b63c715d3aadbe91f152ee5c3621139a2cbc"
 centos_install:
-  url: "http://mirrors.ircam.fr/pub/CentOS/{{ centos_version }}/os/x86_64"
+  url: "http://mirrors.ircam.fr/pub/CentOS/{{ centos_version }}/BaseOS/x86_64/os"
 net_pxe:
   id: 20
   uuid: a3169055-9d97-4b4d-afc7-e778572d814b
@@ -90,6 +90,32 @@ pki_vm:
     system: vg_pki_{{ site_domain }}_01
     app:
     - vg_pki_{{ site_domain }}_01_pki
+
+tst_vm:
+  uuid: "d3ebbecd-1655-42d4-9639-740588feba48"
+  name: "tst-{{ site_name }}-01"
+  domain_name: "{{ site_domain }}"
+  root_pw: 'M1the1tel!'
+  mem: 2
+  vcpu: 2
+  description: "Kickstart Tests Server"
+  int_adm:
+    mac: '52:54:00:96:58:b4'
+    model: 'virtio'
+    index: 0
+  os_disk:
+    format: "qcow2"
+    size: "30G"
+  l3:
+    dns:
+    - 8.8.8.8
+    - 8.8.4.4
+    interfaces:
+    - ip: 172.20.197.137
+      nm: 255.255.255.192
+      gw: 172.20.197.190
+  vg:
+    system: vg_tst_{{ site_domain }}_01
 
 cert_authorities:
   root:
