@@ -91,6 +91,32 @@ pki_vm:
     app:
     - vg_pki_{{ site_domain }}_01_pki
 
+tst_vm:
+  uuid: "d3ebbecd-1655-42d4-9639-740588feba48"
+  name: "tst-{{ site_name }}-01"
+  domain_name: "{{ site_domain }}"
+  root_pw: 'M1the1tel!'
+  mem: 2
+  vcpu: 2
+  description: "Kickstart Tests Server"
+  int_adm:
+    mac: '52:54:00:96:58:b4'
+    model: 'virtio'
+    index: 0
+  os_disk:
+    format: "qcow2"
+    size: "30G"
+  l3:
+    dns:
+    - 8.8.8.8
+    - 8.8.4.4
+    interfaces:
+    - ip: 172.20.197.137
+      nm: 255.255.255.192
+      gw: 172.20.197.190
+  vg:
+    system: vg_tst_{{ site_domain }}_01
+
 cert_authorities:
   root:
     name: root_ca

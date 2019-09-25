@@ -1,0 +1,66 @@
+#version=RHEL8
+# autostep --autoscreenshot
+# System authorization information
+auth --enableshadow --passalgo=sha512
+
+install
+# URL
+url --url="{{ centos_install.url }}"
+
+# Run the Setup Agent on first boot
+firstboot --enable
+#ignoredisk --only-use=vda,vdb
+# Keyboard layouts
+keyboard --vckeymap=fr --xlayouts='fr (oss)'
+# System language
+lang fr_FR.UTF-8
+
+# FW
+firewall --enabled --ssh  --trust ens3
+
+# logging
+logging --level=error
+
+# Network information
+network  --bootproto=static --device=ens3 --gateway={{ tst_vm.l3.interfaces.0.gw }} --ip={{ tst_vm.l3.interfaces.0.ip }} --nameserver={{ tst_vm.l3.dns.0 }},{{ tst_vm.l3.dns.1 }} --netmask={{ tst_vm.l3.interfaces.0.nm }} --ipv6=auto --activate
+network  --hostname={{ tst_vm.name }}.{{ tst_vm.domain_name }}
+# Root password
+rootpw {{ tst_vm.root_pw }}
+# System timezone
+timezone Europe/Paris --isUtc
+# System bootloader configuration
+bootloader --location=mbr --boot-drive=vda
+# Partition clearing information
+clearpart --initlabel --all
+# Disk partitioning information
+part /boot --fstype="xfs" --asprimary --ondrive=vda --label=boot --size=1024
+part pv.1 --fstype="lvmpv" --asprimary --ondrive=vda --size=1024 --grow
+volgroup {{ tst_vm.vg.system }} --pesize=32768 pv.1
+logvol swap  --fstype="swap" --name=swap --vgname={{ tst_vm.vg.system }} --size=2048
+logvol /  --fstype="xfs" --size=1024 --label="root" --name=root --vgname={{ tst_vm.vg.system }} --grow
+logvol /var  --fstype="xfs" --size=4096 --label="var" --name=var --vgname={{ tst_vm.vg.system }}
+logvol /tmp  --fstype="xfs" --size=4096 --label="tmp" --name=tmp --vgname={{ tst_vm.vg.system }}
+
+eula --agreed
+reboot
+
+services --enabled=sshd
+
+selinux --enforcing
+
+
+%packages
+@core
+aide
+esc
+libreswan
+%end
+
+
+# %addon org_fedora_oscap
+#     content-type = scap-security-guide
+#     profile = xccdf_org.ssgproject.content_profile_pci-dss
+# %end
+
+%addon com_redhat_kdump --disable
+%end
