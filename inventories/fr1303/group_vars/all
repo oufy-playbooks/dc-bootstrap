@@ -5,11 +5,12 @@ pki_domain: "oufy"
 bootstrap_pool_uuid: 7660c607-d68b-4d51-a2bf-ab28baca5a93
 bootstrap_pool_name: usb_ssd_DC_start
 bootstrap_pool_mount_path: "/var/lib/libvirt/images/{{ bootstrap_pool_name }}"
-centos_version: 8
-centos_build: 1905
+centos_version: 7
+centos_build: 1908
+install_flavor: NetInstall
 centos_netinstall:
-  url: "http://mirrors.ircam.fr/pub/CentOS/{{ centos_version }}/isos/x86_64/CentOS-{{ centos_version }}-x86_64-{{ centos_build }}-boot.iso"
-  checksum: "sha256:a7993a0d4b7fef2433e0d4f53530b63c715d3aadbe91f152ee5c3621139a2cbc"
+  url: "http://mirrors.ircam.fr/pub/CentOS/{{ centos_version }}/isos/x86_64/CentOS-{{ centos_version }}-x86_64-{{ install_flavor }}-{{ centos_build }}.iso"
+  checksum: "sha256:6ffa7ad44e8716e4cd6a5c3a85ba5675a935fc0448c260f43b12311356ba85ad"
 centos_install:
   url: "http://mirrors.ircam.fr/pub/CentOS/{{ centos_version }}/BaseOS/x86_64/os"
 net_pxe:
