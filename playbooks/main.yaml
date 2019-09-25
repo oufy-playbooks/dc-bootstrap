@@ -166,6 +166,12 @@
       command: undefine
       uri: "qemu:///system"
     when: dst_vm_xml_file.changed
+  - name: undefine existing pki VM
+    virt:
+      name: "{{ pki_vm.name }}"
+      command: undefine
+      uri: "qemu:///system"
+    when: pki_vm_xml_file.changed
   - name: define dst VM
     virt:
       name: "{{ dst_vm.name }}"
@@ -190,4 +196,3 @@
       autostart: no
       state: shutdown
       uri: "qemu:///system"
-
