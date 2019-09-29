@@ -187,12 +187,12 @@
   - name: set dst VM status
     virt:
       name: "{{ dst_vm.name }}"
-      autostart: no
-      state: shutdown
+      autostart: yes
+      state: running
       uri: "qemu:///system"
   - name: set pki VM status
     virt:
       name: "{{ pki_vm.name }}"
-      autostart: no
-      state: shutdown
+      autostart: yes
+      state: running
       uri: "qemu:///system"
